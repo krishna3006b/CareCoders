@@ -8,8 +8,8 @@ require('./jobs')(agenda);
 
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
-// const patientRoutes = require('./routes/patientRoutes');
-// const bookingRoutes = require('./routes/bookingRoutes');
+const patientRoutes = require('./routes/patientRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 
@@ -20,8 +20,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
-// app.use('/api/patients', patientRoutes);
-// app.use('/api/bookings', bookingRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 app.get('/', (req, res) => res.send('DocSure API Running'));
 

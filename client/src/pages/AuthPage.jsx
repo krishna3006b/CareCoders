@@ -5,8 +5,12 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { Navigate } from "react-router-dom";
 import { apiConnector } from "../services/apiConnector";
-import Logo from '../assets/logo.png'
+import Logo from '../assets/logo.png';
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../slices/userSlice";
+import { setProfileData } from "../slices/profileSlice";
 
+// Signup Schema
 const signupSchema = z.object({
     name: z.string()
         .min(4, "Name must be at least 4 characters")
@@ -20,6 +24,7 @@ const signupSchema = z.object({
         .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
+// Signin Schema
 const signinSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string()
@@ -33,7 +38,9 @@ export default function AuthPage() {
     const [mode, setMode] = useState("signin");
     const [showPassword, setShowPassword] = useState(false);
     const [redirect, setRedirect] = useState(false);
+    const dispatch = useDispatch();
 
+    // Signup Form
     const {
         register: signupRegister,
         handleSubmit: handleSignupSubmit,
@@ -43,6 +50,7 @@ export default function AuthPage() {
         mode: "onChange",
     });
 
+    // Signin Form
     const {
         register: signinRegister,
         handleSubmit: handleSigninSubmit,
@@ -51,7 +59,9 @@ export default function AuthPage() {
         resolver: zodResolver(signinSchema),
         mode: "onChange",
     });
-    const backendUrl = import.meta.env.VITE_BACKEND;
+
+    const backendUrl = import.meta.env.VITE_API_URL;
+
     const handleSignup = async (data) => {
         try {
             const response = await apiConnector("POST", `${backendUrl}/auth/signup`, {
@@ -60,15 +70,14 @@ export default function AuthPage() {
                 email: data.email,
                 password: data.password,
             });
-            console.log("hjdsgjkf", response);
+
             if (response.data.success) {
-                toast.success("Registration successful!");
-                setRedirect(true);
+                setMode("signin");
+                toast.success("Registration successful! Please log in.");
             } else {
                 toast.error("Registration failed. Please try again.");
             }
         } catch (error) {
-            console.log(error.message);
             toast.error("An error occurred during registration.");
         }
     };
@@ -81,13 +90,14 @@ export default function AuthPage() {
             });
 
             if (response.data.success) {
-                const { user, token } = response.data;
+                const { user, token, profile } = response.data;
+
+                // Store in Redux
+                dispatch(loginSuccess({ user, token }));
+                dispatch(setProfileData(profile));
 
                 // Store in localStorage
-                localStorage.setItem(
-                    "auth",
-                    JSON.stringify({ user, token })
-                );
+                localStorage.setItem("auth", JSON.stringify({ user, token }));
 
                 toast.success("Login successful!");
                 setRedirect(true);
@@ -108,7 +118,7 @@ export default function AuthPage() {
             {/* Logo */}
             <div className="flex flex-col items-center mb-6">
                 <span className="p-1 rounded-full bg-gray-100 inline-block">
-                    <img src={Logo} alt="" className="w-9 h-9 object-cover rounded-full" />
+                    <img src={Logo} alt="Logo" className="w-9 h-9 object-cover rounded-full" />
                 </span>
                 <h1 className="text-3xl font-bold text-gray-900">DocSure</h1>
                 <p className="text-gray-500 mt-1">Your health companion</p>
@@ -136,6 +146,7 @@ export default function AuthPage() {
                     <form onSubmit={handleSignupSubmit(handleSignup)}>
                         <h2 className="text-xl font-semibold mb-6 text-gray-900">Create Account</h2>
 
+                        {/* Full Name */}
                         <label className="block text-gray-700 mb-1">Full Name</label>
                         <input
                             type="text"
@@ -146,6 +157,7 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signupErrors.name.message}</p>
                         )}
 
+                        {/* Role */}
                         <label className="block text-gray-700 mb-1">Role</label>
                         <select
                             className="w-full border rounded px-3 py-2 mb-4 focus:outline-none"
@@ -155,6 +167,7 @@ export default function AuthPage() {
                             <option value="doctor">Doctor</option>
                         </select>
 
+                        {/* Email Address */}
                         <label className="block text-gray-700 mb-1">Email Address</label>
                         <input
                             type="email"
@@ -165,6 +178,7 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signupErrors.email.message}</p>
                         )}
 
+                        {/* Password */}
                         <label className="block text-gray-700 mb-1">Password</label>
                         <div className="relative">
                             <input
@@ -198,6 +212,7 @@ export default function AuthPage() {
                 ) : (
                     <form onSubmit={handleSigninSubmit(handleSignin)}>
                         <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign in with email</h2>
+                        {/* Email Address */}
                         <label className="block text-gray-700 mb-1">Email Address</label>
                         <input
                             type="email"
@@ -208,6 +223,7 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signinErrors.email.message}</p>
                         )}
 
+                        {/* Password */}
                         <label className="block text-gray-700 mb-1">Password</label>
                         <div className="relative">
                             <input
@@ -241,6 +257,7 @@ export default function AuthPage() {
                 )}
             </div>
 
+            {/* Terms of Service */}
             <p className="text-xs text-gray-400 mt-6 text-center max-w-sm">
                 By continuing, you agree to our{" "}
                 <a href="#" className="text-blue-600 underline">

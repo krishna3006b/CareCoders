@@ -22,6 +22,7 @@ exports.isAuth = async (req, res, next) => {
             req.user = decode;
             next();
         } catch (err) {
+            console.log(err.message);
             return res.status(401).json({
                 success: false,
                 message: 'Token is invalid',
@@ -29,19 +30,20 @@ exports.isAuth = async (req, res, next) => {
         }
 
     } catch (error) {
+        console.log(error.message);
         return res.status(500).json({
             success: false,
             errorMessage: error.message,
             message: 'Internal Server Error!',
         });
     }
-};
+}
 
 exports.isDoctor = async (req, res, next) => {
     try {
         const { role } = req.user;
 
-        if (role !== 'Doctor') {
+        if (role !== 'doctor') {
             return res.status(401).json({
                 success: false,
                 message: "This is a Protected Route for Doctor",
@@ -50,6 +52,7 @@ exports.isDoctor = async (req, res, next) => {
 
         next();
     } catch (error) {
+        console.log(error.message);
         return res.status(500).json({
             success: false,
             errorMessage: error.message,
@@ -60,10 +63,9 @@ exports.isDoctor = async (req, res, next) => {
 
 exports.isPatient = async (req, res, next) => {
     try {
-
         const { role } = req.user;
 
-        if (role !== 'Patient') {
+        if (role !== 'patient') {
             return res.status(401).json({
                 success: false,
                 message: "This is a Protected Route for Patient",
@@ -72,6 +74,7 @@ exports.isPatient = async (req, res, next) => {
 
         next();
     } catch (error) {
+        console.log(error.message);
         return res.status(500).json({
             success: false,
             errorMessage: error.message,

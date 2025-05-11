@@ -9,8 +9,7 @@ exports.getPatientById = async (req, res) => {
 
         // Find the patient by userId
         const patient = await Patient.findOne({ userId: patientId })
-            .populate('userId', 'name email')  // Populate userId with name and email only
-            .exec();
+            .populate('userId'); // populate the user details (assuming there is a 'User' model)
 
         if (!patient) {
             return res.status(404).json({
@@ -19,24 +18,27 @@ exports.getPatientById = async (req, res) => {
             });
         }
 
+        const data = {
+            _id: patient._id,
+            userId: patient.userId._id,
+            name: patient.userId.name,
+            email: patient.userId.email,
+            phone: patient.userId.phone,
+            location: patient.location,
+            insuranceProvider: patient.insuranceProvider,
+            policyNumber: patient.policyNumber,
+            familyMembers: patient.familyMembers.map(fm => ({
+                _id: fm._id,
+                name: fm.name,
+                relationship: fm.relationship,
+                dateOfBirth: fm.dateOfBirth
+            }))
+        }
+
         // Return patient data in the desired format
         return res.status(200).json({
             success: true,
-            patient: {
-                id: patient.userId._id,
-                name: patient.userId.name,
-                email: patient.userId.email,
-                phone: patient.phone,
-                location: patient.location,
-                insuranceProvider: patient.insuranceProvider,
-                policyNumber: patient.policyNumber,
-                familyMembers: patient.familyMembers.map(fm => ({
-                    id: fm._id,
-                    name: fm.name,
-                    relationship: fm.relationship,
-                    dateOfBirth: fm.dateOfBirth
-                }))
-            }
+            patient: data,
         });
     } catch (error) {
         console.error(error);
@@ -51,24 +53,54 @@ exports.getPatientById = async (req, res) => {
 // GET Bookings for a Patient
 exports.getBookingsForPatient = async (req, res) => {
     try {
-        const patientId = req.params.patientId;
+        const userId = req.params.patientId;
 
-        const bookings = await Booking.find({ patientId })
-            .populate('doctorId', 'name')
+        // First find the patient using userId
+        const patient = await Patient.findOne({ userId });
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                message: "Patient not found"
+            });
+        }
+
+        // Then find bookings using patient._id and populate doctor details
+        const bookings = await Booking.find({ patientId: patient._id })
+            .populate({
+                path: 'doctorId',
+                populate: {
+                    path: 'userId',
+                    select: 'name email phone image'
+                }
+            })
             .exec();
 
         return res.status(200).json({
             success: true,
-            appointments: bookings.map(booking => ({
-                id: booking._id,
-                doctorName: booking.doctorId.name,
-                familyMemberName: booking.familyMemberName,
-                appointmentTime: booking.appointmentTime,
-                specialty: booking.specialty,
-                status: booking.status
-            }))
+            appointments: bookings.map(booking => {
+                if (!booking.doctorId) {
+                    console.warn(`Booking ${booking._id} has no doctorId`);
+                }
+                if (booking.doctorId && !booking.doctorId.userId) {
+                    console.warn(`Doctor ${booking.doctorId._id} for booking ${booking._id} has no userId`);
+                }
+                return {
+                    _id: booking._id,
+                    doctorId: (booking.doctorId && booking.doctorId.userId) ? {
+                        _id: booking.doctorId._id,
+                        name: booking.doctorId.userId.name,
+                        image: booking.doctorId.userId.image,
+                        specialties: booking.doctorId.specialties
+                    } : null,
+                    familyMemberName: booking.familyMemberName,
+                    appointmentTime: booking.appointmentTime,
+                    specialty: booking.specialty,
+                    status: booking.status
+                };
+            })
         });
     } catch (error) {
+        console.error('Get bookings error:', error);
         return res.status(500).json({
             success: false,
             message: "Server error.",
@@ -77,33 +109,128 @@ exports.getBookingsForPatient = async (req, res) => {
     }
 };
 
-// Update patient profile
 exports.updatePatient = async (req, res) => {
     try {
-        const patientId = req.params.id;
-        const { name, email, phone, location, insuranceProvider, policyNumber, familyMembers } = req.body;
+        const userId = req.params.userId;
+        const { familyMembers = [], email, ...updateData } = req.body;
 
-        // Find patient by ID
-        const patient = await Patient.findById(patientId);
-        if (!patient) {
-            return res.status(404).json({ message: 'Patient not found' });
+        // Update user basic info
+        const userUpdateData = {
+            name: updateData.name,
+            phone: updateData.phone
+        };
+
+        // If email is provided and different from current email
+        if (email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser && existingUser._id.toString() !== userId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already in use"
+                });
+            }
+            userUpdateData.email = email;
         }
 
-        // Update patient details
-        patient.name = name || patient.name;
-        patient.email = email || patient.email;
-        patient.phone = phone || patient.phone;
-        patient.location = location || patient.location;
-        patient.insuranceProvider = insuranceProvider || patient.insuranceProvider;
-        patient.policyNumber = policyNumber || patient.policyNumber;
-        patient.familyMembers = familyMembers || patient.familyMembers;
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            userUpdateData,
+            { new: true }
+        );
 
-        patient.updatedAt = Date.now();
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
 
+        // Find the patient
+        const patient = await Patient.findOne({ userId });
+
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                message: "Patient profile not found"
+            });
+        }
+
+        // Handle family members update using name and date of birth comparison
+        if (Array.isArray(familyMembers)) {
+            // Format incoming dates
+            const formattedNewMembers = familyMembers.map(member => ({
+                ...member,
+                dateOfBirth: new Date(member.dateOfBirth)
+            }));
+
+            // Function to check if two members are the same based on name and DOB
+            const isSameMember = (member1, member2) => {
+                return member1.name.toLowerCase() === member2.name.toLowerCase() &&
+                    new Date(member1.dateOfBirth).getTime() === new Date(member2.dateOfBirth).getTime();
+            };
+
+            // Find members to be removed (exist in DB but not in new data)
+            const removedMembers = patient.familyMembers.filter(existingMember =>
+                !formattedNewMembers.some(newMember => isSameMember(existingMember, newMember))
+            );
+
+            // Find members to be added (exist in new data but not in DB)
+            const addedMembers = formattedNewMembers.filter(newMember =>
+                !patient.familyMembers.some(existingMember => isSameMember(existingMember, newMember))
+            );
+
+            // Find members to be updated (exist in both but might have different relationship)
+            const updatedMembers = formattedNewMembers.filter(newMember =>
+                patient.familyMembers.some(existingMember => isSameMember(existingMember, newMember))
+            ).map(newMember => {
+                const existingMember = patient.familyMembers.find(em => isSameMember(em, newMember));
+                return {
+                    ...existingMember.toObject(),
+                    relationship: newMember.relationship
+                };
+            });
+
+            // Set the new family members array
+            patient.familyMembers = [
+                ...updatedMembers,
+                ...addedMembers
+            ];
+        }
+
+        // Update other patient fields
+        patient.location = updateData.location;
+        patient.insuranceProvider = updateData.insuranceProvider;
+        patient.policyNumber = updateData.policyNumber;
+
+        // Save the updated patient
         await patient.save();
-        res.status(200).json({ message: 'Patient updated successfully', patient });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+
+        const responseData = {
+            patient: {
+                _id: patient._id,
+                userId: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                location: patient.location,
+                insuranceProvider: patient.insuranceProvider,
+                policyNumber: patient.policyNumber,
+                familyMembers: patient.familyMembers
+            }
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: responseData
+        });
+
+    } catch (error) {
+        console.error('Update patient error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile",
+            error: error.message
+        });
     }
 };

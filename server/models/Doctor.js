@@ -1,21 +1,9 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const doctorSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
-    },
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    phone: {
-        type: String,
         required: true
     },
     bio: {
@@ -27,18 +15,35 @@ const doctorSchema = new mongoose.Schema({
     experience: {
         type: String
     },
-    specialties: [{
-        type: String
-    }],
+    specialties: [String],
     clinicLocation: {
         address: { type: String },
         lat: { type: Number },
         lng: { type: Number }
     },
     availableSlots: [{
-        date: { type: String },
-        start: { type: String },
-        end: { type: String }
+        date: String,
+        start: String,
+        end: String
+    }],
+    bookedSlots: [{
+        date: String,
+        start: String,
+        end: String,
+        bookingId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Booking'
+        },
+        patientId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Patient'
+        },
+        patientName: String,
+        status: {
+            type: String,
+            enum: ['scheduled', 'completed', 'cancelled'],
+            default: 'scheduled'
+        }
     }],
     rating: {
         type: Number,
@@ -47,15 +52,7 @@ const doctorSchema = new mongoose.Schema({
     reviewCount: {
         type: Number,
         default: 0
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
     }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

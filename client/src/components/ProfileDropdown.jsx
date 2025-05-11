@@ -1,39 +1,42 @@
-import { Fragment } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../slices/userSlice";
 
 const ProfileDropdown = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-    const user = {
-        name: "John Doe",
-        avatarUrl: "",
-    };
+    const { user } = useSelector((state) => state.user);
 
     const handleLogout = () => {
-        localStorage.removeItem("auth");
+        dispatch(logout());
         navigate("/");
     };
 
-
-    const goToProfile = () => {
+    const handleProfileClick = () => {
         navigate("/profile");
     };
 
     return (
-        <div className="min-w-[200px] max-w-[300px] w-full bg-white rounded-md border border-gray-200">
-            <Link to={'/profile'}
-                className="flex items-center gap-2 p-4 rounded cursor-pointer"
+        <div className="min-w-[200px] max-w-[300px] w-full bg-white rounded-md border border-gray-200 shadow-md">
+            <button
+                onClick={handleProfileClick}
+                className="flex items-center gap-2 p-4 w-full hover:bg-gray-50"
             >
                 <img
-                    src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}`}
+                    src={
+                        user?.avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}`
+                    }
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
                 />
-                <span className="text-sm font-medium text-gray-800">{user.name}</span>
-            </Link>
+                <span className="text-sm font-medium text-gray-800">{user?.name || "User"}</span>
+            </button>
+
             <button
-                className="border-t border-gray-300 cursor-pointer p-4 w-full text-start"
                 onClick={handleLogout}
+                className="w-full text-left p-4 border-t border-gray-200 text-sm text-red-600 hover:bg-red-50"
             >
                 Logout
             </button>

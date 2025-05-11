@@ -11,17 +11,23 @@ const bookingSchema = new mongoose.Schema({
         ref: 'Patient',
         required: true
     },
-    familyMemberId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'FamilyMember',
+    familyMemberName: {
+        type: String,
         required: true
     },
-    familyMemberName: { type: String, required: true },
-    appointmentTime: { type: Date, required: true },
-    specialty: { type: String, required: true },
-    status: { type: String, default: 'scheduled', enum: ['scheduled', 'completed', 'cancelled'] },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-});
+    appointmentTime: {
+        type: Date,
+        required: true
+    },
+    specialty: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['scheduled', 'completed', 'cancelled'],
+        default: 'scheduled'
+    }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);

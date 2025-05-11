@@ -8,36 +8,16 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { motion } from "framer-motion";
 import MaleImg from '../assets/Male.jpg'
 import FemaleImg from '../assets/Female.png'
+import { useSelector } from "react-redux";
+import { apiConnector } from "../services/apiConnector";
+import { toast } from "react-hot-toast";
 
 export default function Home() {
     const [gender, setGender] = useState('Male');
-
-    // Dummy user
-    const user = {
-        specialties: ['Cardiology', 'Internal Medicine'],
-        availability: ['Mon-Fri 9AM-5PM'],
-        clinic: {
-            address: '123 Health St.',
-            location: { coordinates: [77.5946, 12.9716] },
-        },
-    };
-
-    const dummyBookings = [
-        {
-            doctor: 'Dr. Sarah Johnson',
-            specialty: 'Pediatrician',
-            date: 'May 12, 2025',
-            time: '10:30 AM',
-            status: 'Upcoming',
-        },
-        {
-            doctor: 'Dr. Michael Chen',
-            specialty: 'Cardiologist',
-            date: 'May 5, 2025',
-            time: '2:15 PM',
-            status: 'Completed',
-        },
-    ];
+    const { user, token } = useSelector(state => state.user);
+    const backendUrl = import.meta.env.VITE_API_URL;
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const healthTips = [
         {
@@ -101,8 +81,46 @@ export default function Home() {
     };
 
     useEffect(() => {
-        // dispatch(fetchBookings());
-    }, []);
+        const fetchAppointments = async () => {
+            try {
+                if (!user?.id || !token) {
+                    setLoading(false);
+                    return;
+                }
+                const response = await apiConnector(
+                    "GET",
+                    `${backendUrl}/patients/bookings/${user.id}`,
+                    null,
+                    {
+                        Authorization: `Bearer ${token}`
+                    }
+                );
+                if (!response.data.success) {
+                    throw new Error(response.data.message);
+                }
+                setAppointments(response.data.appointments);
+            } catch (error) {
+                toast.error(error.message || "Failed to fetch appointments");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAppointments();
+    }, [user, token, backendUrl]);
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    };
+    const currentDate = new Date();
+    const upcomingAppointments = appointments.filter(appointment => 
+        new Date(appointment.appointmentTime) >= currentDate
+    );
+    const recentAppointments = upcomingAppointments.slice(0, 3);
 
     return (
         <div className="flex flex-col h-screen">
@@ -173,31 +191,37 @@ export default function Home() {
                     {/* Recent Appointments */}
                     <div className="my-4 bg-white rounded-md p-5 text-gray-700">
                         <h2 className="text-xl font-semibold mb-4">Recent Appointments</h2>
-
+                        {loading ? (
+                            <div>Loading...</div>
+                        ) : (
                         <div className='flex flex-col gap-4'>
-                            {dummyBookings.map((booking, index) => (
-                                <div key={index} className="bg-white flex justify-between items-center border border-gray-200 rounded-md p-4">
-                                    <div className='flex gap-4 items-center'>
-                                        <div className={`p-2 rounded-full ${booking.status === 'Upcoming' ? 'bg-[#DBEAFE]' : 'bg-[#F3F4F8]'}`}>
-                                            <FaCalendarCheck fill={`${booking.status === 'Upcoming' ? '#2563EB' : '#6a7282'}`} />
+                            {recentAppointments.length === 0 ? (
+                                <p className="text-gray-500 text-center">No upcoming appointments</p>
+                            ) : (
+                                recentAppointments.map((appointment) => (
+                                    <div key={appointment._id} className="bg-white flex justify-between items-center border border-gray-200 rounded-md p-4">
+                                        <div className='flex gap-4 items-center'>
+                                            <div className={`p-2 rounded-full ${appointment.status === 'scheduled' ? 'bg-[#DBEAFE]' : 'bg-[#F3F4F8]'}`}> 
+                                                <FaCalendarCheck fill={`${appointment.status === 'scheduled' ? '#2563EB' : '#6a7282'}`} />
+                                            </div>
+                                            <div className='flex flex-col gap-0.5'>
+                                                <h3 className="font-bold text-[14px]">{appointment.doctorId?.name || 'Doctor'}</h3>
+                                                <p className="text-gray-600 text-xs">{appointment.specialty} • {formatDate(appointment.appointmentTime)}, {formatTime(appointment.appointmentTime)}</p>
+                                            </div>
                                         </div>
-                                        <div className='flex flex-col gap-0.5'>
-                                            <h3 className="font-bold text-[14px]">{booking.doctor}</h3>
-                                            <p className="text-gray-600 text-xs">{booking.specialty} • {booking.date}, {booking.time}</p>
-                                        </div>
+                                        <span
+                                            className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full ${appointment.status === 'scheduled'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'bg-gray-200 text-gray-700'
+                                                }`}
+                                        >
+                                            {appointment.status}
+                                        </span>
                                     </div>
-                                    <span
-                                        className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full ${booking.status === 'Upcoming'
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'bg-gray-200 text-gray-700'
-                                            }`}
-                                    >
-                                        {booking.status}
-                                    </span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
-
+                        )}
                         <div className="mt-4 flex flex-row items-center text-base font-medium text-blue-700">
                             <Link to='/appointments'>View all appointments</Link>
                             <MdOutlineKeyboardArrowRight fontSize={18} />

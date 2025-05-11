@@ -6,63 +6,11 @@ import Footer from "../components/Footer";
 import { FaFilter } from "react-icons/fa6";
 import { TiArrowLeft } from "react-icons/ti";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Calendar from "../components/Calendar";
-
-// Dummy appointment data
-const upcomingAppointments = [
-    {
-        doctor: "Dr. Emily Johnson",
-        specialty: "Cardiologist",
-        date: "Mon, May 12",
-        time: "10:30 AM",
-        status: "Upcoming",
-        image: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    {
-        doctor: "Dr. Michael Chen",
-        specialty: "Dermatologist",
-        date: "Thu, May 15",
-        time: "2:00 PM",
-        status: "Upcoming",
-        image: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-        doctor: "Dr. Jessica Martinez",
-        specialty: "Neurologist",
-        date: "Tue, May 20",
-        time: "1:30 PM",
-        status: "Upcoming",
-        image: "https://randomuser.me/api/portraits/women/68.jpg",
-    },
-];
-
-const pastAppointments = [
-    {
-        doctor: "Dr. Emily Johnson",
-        specialty: "Cardiologist",
-        date: "Mon, May 12",
-        time: "10:30 AM",
-        status: "Completed",
-        image: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    {
-        doctor: "Dr. Michael Chen",
-        specialty: "Dermatologist",
-        date: "Thu, May 15",
-        time: "2:00 PM",
-        status: "Completed",
-        image: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-        doctor: "Dr. Jessica Martinez",
-        specialty: "Neurologist",
-        date: "Tue, May 20",
-        time: "1:30 PM",
-        status: "Completed",
-        image: "https://randomuser.me/api/portraits/women/68.jpg",
-    },
-];
+import { useSelector } from "react-redux";
+import { apiConnector } from "../services/apiConnector";
+import { toast } from "react-hot-toast";
 
 const FilterAppointments = ({ setStatus, onApply }) => {
     const handleReset = () => {
@@ -130,6 +78,64 @@ export default function Appointments() {
     const [openFilter, setOpenFilter] = useState(false);
     const [filterStatus, setFilterStatus] = useState("all");
     const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const { user, token } = useSelector(state => state.user);
+    const backendUrl = import.meta.env.VITE_API_URL;
+
+    useEffect(() => {
+        const fetchAppointments = async () => {
+            try {
+                console.log('Fetching appointments for user:', user.id);
+                const response = await apiConnector(
+                    "GET",
+                    `${backendUrl}/patients/bookings/${user.id}`,
+                    null,
+                    {
+                        Authorization: `Bearer ${token}`
+                    }
+                );
+
+                console.log('Appointments response:', response);
+
+                if (!response.data.success) {
+                    throw new Error(response.data.message);
+                }
+
+                setAppointments(response.data.appointments);
+            } catch (error) {
+                console.error('Error fetching appointments:', error);
+                toast.error(error.message || "Failed to fetch appointments");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user?.id && token) {
+            fetchAppointments();
+        } else {
+            console.log('No user ID or token available');
+            setLoading(false);
+        }
+    }, [user, token, backendUrl]);
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    };
+
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    };
+
+    const currentDate = new Date();
+    const upcomingAppointments = appointments.filter(appointment => 
+        new Date(appointment.appointmentTime) >= currentDate
+    );
+    const pastAppointments = appointments.filter(appointment => 
+        new Date(appointment.appointmentTime) < currentDate
+    );
 
     const filteredUpcoming = upcomingAppointments.filter((a) => {
         return filterStatus === "all" || filterStatus === "upcoming";
@@ -138,6 +144,10 @@ export default function Appointments() {
     const filteredPast = pastAppointments.filter((a) => {
         return filterStatus === "all" || filterStatus === "past";
     });
+
+    if (loading) {
+        return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    }
 
     return (
         <div className="flex flex-col h-screen">
@@ -168,41 +178,49 @@ export default function Appointments() {
                     <div className="w-full mx-auto">
                         <h1 className="text-2xl font-semibold mb-6 text-gray-700">Upcoming Appointments</h1>
                         <div className="flex flex-col gap-4">
-                            {filteredUpcoming.map((appointment, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
-                                    <div className="w-full flex flex-row flex-wrap justify-between">
-                                        <div className="flex flex-wrap gap-4 items-start sm:items-center">
-                                            <img src={appointment.image} alt={appointment.doctor} className="w-12 h-12 rounded-full object-cover" />
-                                            <div className="flex flex-col">
-                                                <h3 className="text-sm font-semibold text-gray-800">{appointment.doctor}</h3>
-                                                <p className="text-xs text-gray-500">{appointment.specialty}</p>
-                                                <div className="flex flex-col gap-2 text-xs text-gray-600 mt-1">
-                                                    <div className="flex gap-2 items-center">
-                                                        <FaCalendarAlt className="text-blue-500" />
-                                                        <span>{appointment.date}</span>
-                                                    </div>
-                                                    <div className="flex gap-2 items-center">
-                                                        <FaClock className="text-blue-500" />
-                                                        <span>{appointment.time}</span>
+                            {filteredUpcoming.length === 0 ? (
+                                <p className="text-gray-500 text-center">No upcoming appointments</p>
+                            ) : (
+                                filteredUpcoming.map((appointment) => (
+                                    <div key={appointment._id} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
+                                        <div className="w-full flex flex-row flex-wrap justify-between">
+                                            <div className="flex flex-wrap gap-4 items-start sm:items-center">
+                                                <img 
+                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`} 
+                                                    alt={appointment.doctorId.name} 
+                                                    className="w-12 h-12 rounded-full object-cover" 
+                                                />
+                                                <div className="flex flex-col">
+                                                    <h3 className="text-sm font-semibold text-gray-800">{appointment.doctorId.name}</h3>
+                                                    <p className="text-xs text-gray-500">{appointment.specialty}</p>
+                                                    <div className="flex flex-col gap-2 text-xs text-gray-600 mt-1">
+                                                        <div className="flex gap-2 items-center">
+                                                            <FaCalendarAlt className="text-blue-500" />
+                                                            <span>{formatDate(appointment.appointmentTime)}</span>
+                                                        </div>
+                                                        <div className="flex gap-2 items-center">
+                                                            <FaClock className="text-blue-500" />
+                                                            <span>{formatTime(appointment.appointmentTime)}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-blue-100 h-fit w-fit text-blue-700">
+                                                {appointment.status}
+                                            </span>
                                         </div>
-                                        <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-blue-100 h-fit w-fit text-blue-700">
-                                            {appointment.status}
-                                        </span>
-                                    </div>
 
-                                    <div className="w-full flex flex-wrap gap-2 justify-between text-xs text-gray-600 border-t border-gray-200 pt-2">
-                                        <button onClick={() => console.log("Reschedule", appointment)} className="flex items-center gap-1">
-                                            <FaCalendarAlt /> Reschedule
-                                        </button>
-                                        <button onClick={() => setSelectedAppointment(appointment)} className="flex items-center gap-1 text-blue-600">
-                                            <BsInfoCircleFill /> Details
-                                        </button>
+                                        <div className="w-full flex flex-wrap gap-2 justify-between text-xs text-gray-600 border-t border-gray-200 pt-2">
+                                            <button onClick={() => navigate('/book-appointment')} className="flex items-center gap-1">
+                                                <FaCalendarAlt /> Reschedule
+                                            </button>
+                                            <button onClick={() => setSelectedAppointment(appointment)} className="flex items-center gap-1 text-blue-600">
+                                                <BsInfoCircleFill /> Details
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
@@ -211,41 +229,49 @@ export default function Appointments() {
                     <div className="w-full mx-auto">
                         <h1 className="text-2xl font-semibold mb-6 text-gray-700">Past Appointments</h1>
                         <div className="flex flex-col gap-4">
-                            {filteredPast.map((appointment, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
-                                    <div className="w-full flex flex-row flex-wrap justify-between">
-                                        <div className="flex flex-wrap gap-4 items-start sm:items-center">
-                                            <img src={appointment.image} alt={appointment.doctor} className="w-12 h-12 rounded-full object-cover" />
-                                            <div className="flex flex-col">
-                                                <h3 className="text-sm font-semibold text-gray-800">{appointment.doctor}</h3>
-                                                <p className="text-xs text-gray-500">{appointment.specialty}</p>
-                                                <div className="flex flex-col gap-2 text-xs text-gray-600 mt-1">
-                                                    <div className="flex gap-2 items-center">
-                                                        <FaCalendarAlt className="text-blue-500" />
-                                                        <span>{appointment.date}</span>
-                                                    </div>
-                                                    <div className="flex gap-2 items-center">
-                                                        <FaClock className="text-blue-500" />
-                                                        <span>{appointment.time}</span>
+                            {filteredPast.length === 0 ? (
+                                <p className="text-gray-500 text-center">No past appointments</p>
+                            ) : (
+                                filteredPast.map((appointment) => (
+                                    <div key={appointment._id} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
+                                        <div className="w-full flex flex-row flex-wrap justify-between">
+                                            <div className="flex flex-wrap gap-4 items-start sm:items-center">
+                                                <img 
+                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`} 
+                                                    alt={appointment.doctorId.name} 
+                                                    className="w-12 h-12 rounded-full object-cover" 
+                                                />
+                                                <div className="flex flex-col">
+                                                    <h3 className="text-sm font-semibold text-gray-800">{appointment.doctorId.name}</h3>
+                                                    <p className="text-xs text-gray-500">{appointment.specialty}</p>
+                                                    <div className="flex flex-col gap-2 text-xs text-gray-600 mt-1">
+                                                        <div className="flex gap-2 items-center">
+                                                            <FaCalendarAlt className="text-blue-500" />
+                                                            <span>{formatDate(appointment.appointmentTime)}</span>
+                                                        </div>
+                                                        <div className="flex gap-2 items-center">
+                                                            <FaClock className="text-blue-500" />
+                                                            <span>{formatTime(appointment.appointmentTime)}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700 h-fit w-fit">
+                                                {appointment.status}
+                                            </span>
                                         </div>
-                                        <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700 h-fit w-fit">
-                                            {appointment.status}
-                                        </span>
-                                    </div>
 
-                                    <div className="w-full flex flex-wrap gap-2 justify-between text-xs text-gray-600 border-t border-gray-200 pt-2">
-                                        <button onClick={() => console.log("Book Again", appointment)} className="flex items-center gap-1 text-blue-600">
-                                            <FaCalendarPlus /> Book Again
-                                        </button>
-                                        <button onClick={() => setSelectedAppointment(appointment)} className="flex items-center gap-1 text-blue-600">
-                                            <BsInfoCircleFill /> Details
-                                        </button>
+                                        <div className="w-full flex flex-wrap gap-2 justify-between text-xs text-gray-600 border-t border-gray-200 pt-2">
+                                            <button onClick={() => navigate('/book-appointment')} className="flex items-center gap-1 text-blue-600">
+                                                <FaCalendarPlus /> Book Again
+                                            </button>
+                                            <button onClick={() => setSelectedAppointment(appointment)} className="flex items-center gap-1 text-blue-600">
+                                                <BsInfoCircleFill /> Details
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
@@ -263,15 +289,15 @@ export default function Appointments() {
                         </button>
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-4">
-                                <img src={selectedAppointment.image} alt="doctor" className="w-14 h-14 rounded-full" />
+                                <img src={selectedAppointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${selectedAppointment.doctorId.name}`} alt="doctor" className="w-14 h-14 rounded-full" />
                                 <div>
-                                    <h2 className="text-lg font-semibold text-gray-800">{selectedAppointment.doctor}</h2>
+                                    <h2 className="text-lg font-semibold text-gray-800">{selectedAppointment.doctorId.name}</h2>
                                     <p className="text-sm text-gray-500">{selectedAppointment.specialty}</p>
                                 </div>
                             </div>
                             <div className="text-sm text-gray-600 mt-2">
-                                <p><strong>Date:</strong> {selectedAppointment.date}</p>
-                                <p><strong>Time:</strong> {selectedAppointment.time}</p>
+                                <p><strong>Date:</strong> {formatDate(selectedAppointment.appointmentTime)}</p>
+                                <p><strong>Time:</strong> {formatTime(selectedAppointment.appointmentTime)}</p>
                                 <p><strong>Status:</strong> {selectedAppointment.status}</p>
                             </div>
                         </div>
