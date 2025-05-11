@@ -1,3 +1,7 @@
+TEAM : Care Coders
+Project Name : DocSure
+Problem Statement : (3) Mobile application for scheduling of an appointment for a patient with
+doctor
 
 Figma Link- https://www.figma.com/design/mItxvky80Mq5eEzDhxJE5y/DocSure?node-id=0-1&t=6QmuLtf6PRsPlMj9-1
 
