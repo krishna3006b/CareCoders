@@ -1,6 +1,6 @@
 import AuthPage from './pages/AuthPage';
 import Home from './pages/Home';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Appointments from './pages/Appointments';
 import BookAppointment from './pages/BookAppointment';
 import Profile from './pages/Profile';

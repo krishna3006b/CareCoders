@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { FaUser } from 'react-icons/fa';
 import ProfileDropdown from './ProfileDropdown';
-import { HiDocumentPlus } from "react-icons/hi2";
 import Logo from '../assets/logo.png';
 
 export default function Header() {

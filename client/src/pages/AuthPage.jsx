@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { Navigate } from "react-router-dom";
 import { apiConnector } from "../services/apiConnector";
+import Logo from '../assets/logo.png'
 
 const signupSchema = z.object({
     name: z.string()
@@ -30,7 +30,6 @@ const signinSchema = z.object({
 });
 
 export default function AuthPage() {
-    const dispatch = useDispatch();
     const [mode, setMode] = useState("signin");
     const [showPassword, setShowPassword] = useState(false);
     const [redirect, setRedirect] = useState(false);
@@ -108,17 +107,9 @@ export default function AuthPage() {
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
             {/* Logo */}
             <div className="flex flex-col items-center mb-6">
-                <div className="bg-blue-600 rounded-full p-4 mb-3">
-                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
-                        <rect width="24" height="24" rx="12" fill="#2563eb" />
-                        <path
-                            d="M8 7a2 2 0 0 1 2-2h2.5L17 7.5V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V7z"
-                            fill="#fff"
-                        />
-                        <rect x="11" y="10" width="2" height="4" rx="1" fill="#2563eb" />
-                        <rect x="10" y="12" width="4" height="2" rx="1" fill="#2563eb" />
-                    </svg>
-                </div>
+                <span className="p-1 rounded-full bg-gray-100 inline-block">
+                    <img src={Logo} alt="" className="w-9 h-9 object-cover rounded-full" />
+                </span>
                 <h1 className="text-3xl font-bold text-gray-900">DocSure</h1>
                 <p className="text-gray-500 mt-1">Your health companion</p>
             </div>

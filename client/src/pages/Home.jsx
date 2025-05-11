@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { updateProfile } from '../slices/doctorSlice';
-// import { fetchBookings } from '../slices/bookingSlice';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
@@ -11,12 +8,8 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { motion } from "framer-motion";
 import MaleImg from '../assets/Male.jpg'
 import FemaleImg from '../assets/Female.png'
-import { FaUser } from "react-icons/fa";
 
 export default function Home() {
-    // const dispatch = useDispatch();
-    // const { user } = useSelector(state => state.auth);
-    // const { bookings } = useSelector(state => state.booking);
     const [gender, setGender] = useState('Male');
 
     // Dummy user
@@ -84,22 +77,8 @@ export default function Home() {
             group: "Elderly",
             image: "https://randomuser.me/api/portraits/women/65.jpg",
         },
-        // {
-        //     id: 3,
-        //     name: "Lucas Smith",
-        //     age: '12',
-        //     group: "Child",
-        //     image: "https://randomuser.me/api/portraits/boys/12.jpg",
-        // },
-        // {
-        //     id: 4,
-        //     name: "Baby Lily",
-        //     age: '8m',
-        //     group: "Infant",
-        //     image: "https://randomuser.me/api/portraits/girls/8.jpg",
-        // },
         {
-            id: 5,
+            id: 3,
             name: "Max",
             age: '',
             group: "Pet",
@@ -173,7 +152,7 @@ export default function Home() {
                         <div className="w-9/12 mx-auto flex flex-row flex-wrap gap-1 justify-between p-4">
                             {people?.map((person) => (
                                 <div key={person.id} className='flex flex-col gap-0.5 text-center items-center'>
-                                    
+
                                     {/* Image */}
                                     <img
                                         src={person.image}
