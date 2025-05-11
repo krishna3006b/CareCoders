@@ -14,3 +14,5 @@ Mobile application for scheduling an appointment for a patient with a doctor.
 - **Canva Presentation**: [DocSure Canva Presentation](https://www.canva.com/design/DAGnIqFK9EA/pKcaArrZmOC_0YPYo9Or_Q/edit?utm_content=DAGnIqFK9EA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 - **Testing and Functional Requirement Document**: [Google Docs](https://docs.google.com/document/d/109ff7oylGVaccWsH1QNneL3WUCvOT01dHc7BAKU-BHg/edit?usp=sharing)
+
+- **Presentation Video**: [One Drive](https://1drv.ms/f/c/af9088ee387b5c3a/EkLdC9AiHlFIn40d_UMzYJoBGKEmcR47LbaTDMOSt00Hng)
