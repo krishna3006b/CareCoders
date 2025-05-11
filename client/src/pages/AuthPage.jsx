@@ -51,10 +51,10 @@ export default function AuthPage() {
         resolver: zodResolver(signinSchema),
         mode: "onChange",
     });
-
+    const backendUrl = import.meta.env.VITE_BACKEND;
     const handleSignup = async (data) => {
         try {
-            const response = await apiConnector("POST", "http://localhost:5000/api/auth/signup", {
+            const response = await apiConnector("POST", `${backendUrl}/auth/signup`, {
                 name: data.name,
                 role: data.role,
                 email: data.email,
@@ -75,7 +75,7 @@ export default function AuthPage() {
 
     const handleSignin = async (data) => {
         try {
-            const response = await apiConnector("POST", "http://localhost:5000/api/auth/login", {
+            const response = await apiConnector("POST", `${backendUrl}/auth/login`, {
                 email: data.email,
                 password: data.password,
             });
