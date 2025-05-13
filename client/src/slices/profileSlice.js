@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Initial state for the profile (patient or doctor)
 const initialState = {
     profileData: null,
     loading: false,
@@ -11,15 +10,12 @@ const profileSlice = createSlice({
     name: "profile",
     initialState,
     reducers: {
-        // Set full profile data (doctor or patient)
         setProfileData: (state, action) => {
             state.profileData = action.payload;
         },
-        // Update profile fields (merged into existing)
         updateProfileData: (state, action) => {
             state.profileData = { ...state.profileData, ...action.payload };
         },
-        // Specific to patient: update family members
         updateFamilyMembers: (state, action) => {
             if (state.profileData) {
                 state.profileData.familyMembers = action.payload;
@@ -31,7 +27,6 @@ const profileSlice = createSlice({
         setError: (state, action) => {
             state.error = action.payload;
         },
-        // Optional reset (e.g., on logout)
         resetProfile: (state) => {
             state.profileData = null;
             state.loading = false;

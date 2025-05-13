@@ -8,7 +8,6 @@ exports.createBooking = async (req, res) => {
     try {
         const { doctorId, patientId, familyMemberName, appointmentTime, specialty, slotInfo } = req.body;
 
-        // Check if the slot is still available
         const doctor = await Doctor.findById(doctorId);
         if (!doctor) {
             return res.status(404).json({
@@ -17,7 +16,6 @@ exports.createBooking = async (req, res) => {
             });
         }
 
-        // Find the patient using patientId directly
         const patient = await Patient.findById(patientId);
         if (!patient) {
             return res.status(404).json({
@@ -26,18 +24,15 @@ exports.createBooking = async (req, res) => {
             });
         }
 
-        // Convert appointment time to Date object for comparison
         const requestedAppointmentTime = new Date(appointmentTime);
-        
-        // Find the exact slot with more flexible comparison
+
         const slotToBook = doctor.availableSlots.find(slot => {
             const slotDate = new Date(`${slot.date}T${slot.start}`);
-            // Compare only the date and time components, ignoring timezone
             return slotDate.getFullYear() === requestedAppointmentTime.getFullYear() &&
-                   slotDate.getMonth() === requestedAppointmentTime.getMonth() &&
-                   slotDate.getDate() === requestedAppointmentTime.getDate() &&
-                   slotDate.getHours() === requestedAppointmentTime.getHours() &&
-                   slotDate.getMinutes() === requestedAppointmentTime.getMinutes();
+                slotDate.getMonth() === requestedAppointmentTime.getMonth() &&
+                slotDate.getDate() === requestedAppointmentTime.getDate() &&
+                slotDate.getHours() === requestedAppointmentTime.getHours() &&
+                slotDate.getMinutes() === requestedAppointmentTime.getMinutes();
         });
 
         if (!slotToBook) {
@@ -47,7 +42,6 @@ exports.createBooking = async (req, res) => {
             });
         }
 
-        // Create booking with patient._id instead of userId
         const booking = new Booking({
             doctorId,
             patientId: patient._id,
@@ -59,18 +53,15 @@ exports.createBooking = async (req, res) => {
 
         await booking.save();
 
-        // Remove the booked slot from available slots
         doctor.availableSlots = doctor.availableSlots.filter(slot => {
             const slotDate = new Date(`${slot.date}T${slot.start}`);
-            // Compare only the date and time components, ignoring timezone
             return !(slotDate.getFullYear() === requestedAppointmentTime.getFullYear() &&
-                    slotDate.getMonth() === requestedAppointmentTime.getMonth() &&
-                    slotDate.getDate() === requestedAppointmentTime.getDate() &&
-                    slotDate.getHours() === requestedAppointmentTime.getHours() &&
-                    slotDate.getMinutes() === requestedAppointmentTime.getMinutes());
+                slotDate.getMonth() === requestedAppointmentTime.getMonth() &&
+                slotDate.getDate() === requestedAppointmentTime.getDate() &&
+                slotDate.getHours() === requestedAppointmentTime.getHours() &&
+                slotDate.getMinutes() === requestedAppointmentTime.getMinutes());
         });
 
-        // Add to booked slots
         doctor.bookedSlots = doctor.bookedSlots || [];
         doctor.bookedSlots.push({
             date: slotInfo.date,
@@ -84,10 +75,24 @@ exports.createBooking = async (req, res) => {
 
         await doctor.save();
 
-        // Update patient's appointments
         patient.appointments = patient.appointments || [];
         patient.appointments.push(booking._id);
         await patient.save();
+
+        const populatedDoctor = await Doctor.findById(booking.doctorId).populate('userId');
+        const populatedPatient = await Patient.findById(booking.patientId).populate('userId');
+
+        const emailSubject = 'Your appointment is scheduled';
+        const emailBody = `
+            <p>Hello ${populatedPatient.userId.name},</p>
+            <p>Your appointment with Dr. ${populatedDoctor.userId.name} has been <strong>scheduled</strong>.</p>
+            <p><strong>Specialty:</strong> ${booking.specialty}</p>
+            <p><strong>Date:</strong> ${new Date(booking.appointmentTime).toLocaleString()}</p>
+            <p>Thank you for using our platform.</p>
+        `;
+
+        await sendEmail(populatedPatient.userId.email, emailSubject, emailBody);
+        await sendEmail(populatedDoctor.userId.email, emailSubject, emailBody);
 
         return res.status(201).json({
             success: true,
@@ -131,7 +136,6 @@ exports.updateBookingStatus = async (req, res) => {
 
         await booking.save();
 
-        // Notify both doctor and patient
         const doctor = await Doctor.findById(booking.doctorId).populate('userId');
         const patient = await Patient.findById(booking.patientId).populate('userId');
 
@@ -168,7 +172,6 @@ exports.deleteBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
 
-        // Find booking
         const booking = await Booking.findById(bookingId);
         if (!booking) {
             return res.status(404).json({
@@ -177,14 +180,12 @@ exports.deleteBooking = async (req, res) => {
             });
         }
 
-        // Find doctor and remove from bookedSlots
         const doctor = await Doctor.findById(booking.doctorId);
         if (doctor) {
             doctor.bookedSlots = doctor.bookedSlots.filter(
                 slot => slot.bookingId.toString() !== bookingId
             );
 
-            // Add the slot back to availableSlots
             doctor.availableSlots.push({
                 date: new Date(booking.appointmentTime).toISOString().split('T')[0],
                 start: new Date(booking.appointmentTime).toLocaleTimeString('en-US', {
@@ -203,7 +204,6 @@ exports.deleteBooking = async (req, res) => {
             await doctor.save();
         }
 
-        // Find patient and remove from appointments
         const patient = await Patient.findOne({ userId: booking.patientId });
         if (patient) {
             patient.appointments = patient.appointments.filter(
@@ -212,10 +212,8 @@ exports.deleteBooking = async (req, res) => {
             await patient.save();
         }
 
-        // Delete the booking
         await Booking.findByIdAndDelete(bookingId);
 
-        // Send notification emails
         const doctorWithUser = await Doctor.findById(booking.doctorId).populate('userId');
         const patientWithUser = await Patient.findById(booking.patientId).populate('userId');
 

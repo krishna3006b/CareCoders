@@ -9,80 +9,6 @@ import { setLoading, setError, setDoctors } from "../slices/doctorsSlice";
 import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
 
-const dummyDoctors = [
-    {
-        id: "1",
-        name: "Dr. Emily Johnson",
-        specialty: "Cardiologist",
-        location: "New York",
-        image: "https://randomuser.me/api/portraits/women/44.jpg",
-        availability: {
-            dates: ["2025-05-12", "2025-05-14"],
-            times: [
-                { range: "11:00 AM to 1:00 PM", slot: "11:00 AM - 1:00 PM" },
-                { range: "3:00 PM to 5:00 PM", slot: "3:00 PM - 5:00 PM" },
-                { range: "3:00 PM to 5:00 PM", slot: "3:00 PM - 5:00 PM" },
-            ],
-        },
-    },
-    {
-        id: "2",
-        name: "Dr. John Smith",
-        specialty: "Dermatologist",
-        location: "Los Angeles",
-        image: "https://randomuser.me/api/portraits/men/45.jpg",
-        availability: {
-            dates: ["2025-05-13", "2025-05-15"],
-            times: [
-                { range: "9:00 AM to 11:00 AM", slot: "9:00 AM - 11:00 AM" },
-                { range: "2:00 PM to 4:00 PM", slot: "2:00 PM - 4:00 PM" },
-            ],
-        },
-    },
-    {
-        id: "3",
-        name: "Dr. Sarah Williams",
-        specialty: "Neurologist",
-        location: "Chicago",
-        image: "https://randomuser.me/api/portraits/women/46.jpg",
-        availability: {
-            dates: ["2025-05-12", "2025-05-16"],
-            times: [
-                { range: "10:00 AM to 12:00 PM", slot: "10:00 AM - 12:00 PM" },
-                { range: "1:00 PM to 3:00 PM", slot: "1:00 PM - 3:00 PM" },
-            ],
-        },
-    },
-    {
-        id: "4",
-        name: "Dr. Robert Brown",
-        specialty: "Orthopedic",
-        location: "Miami",
-        image: "https://randomuser.me/api/portraits/men/47.jpg",
-        availability: {
-            dates: ["2025-05-14", "2025-05-17", "2025-05-19"],
-            times: [
-                { range: "8:00 AM to 10:00 AM", slot: "8:00 AM - 10:00 AM" },
-                { range: "4:00 PM to 6:00 PM", slot: "4:00 PM - 6:00 PM" },
-            ],
-        },
-    },
-    {
-        id: "5",
-        name: "Dr. Lisa Turner",
-        specialty: "Pediatrician",
-        location: "San Francisco",
-        image: "https://randomuser.me/api/portraits/women/48.jpg",
-        availability: {
-            dates: ["2025-05-10", "2025-05-13"],
-            times: [
-                { range: "8:30 AM to 10:30 AM", slot: "8:30 AM - 10:30 AM" },
-                { range: "3:00 PM to 5:00 PM", slot: "3:00 PM - 5:00 PM" },
-            ],
-        },
-    },
-];
-
 export default function DoctorList() {
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -202,7 +128,6 @@ export default function DoctorList() {
         return `${times[0].range}, ${times[1].range} +${times.length - 2}`;
     };
 
-    // Add this handler
     const handleSpecialtyClick = (specialty) => {
         setSelectedSpecialty(specialty === selectedSpecialty ? null : specialty);
     };
@@ -212,12 +137,9 @@ export default function DoctorList() {
 
     return (
         <div className="flex flex-col h-screen">
-            {/* Header */}
             <Header />
 
-            {/* Main Content (Scrollable Doctors List) */}
             <main className="flex-grow p-4 overflow-y-auto">
-                {/* Search Input */}
                 <div className="mb-6">
                     <input
                         type="text"
@@ -228,7 +150,6 @@ export default function DoctorList() {
                     />
                 </div>
 
-                {/* Add Specialty Cards */}
                 <div className="flex flex-wrap gap-2 mb-8">
                     {specialtyCards?.map((specialty) => (
                         <div
@@ -247,7 +168,6 @@ export default function DoctorList() {
                     ))}
                 </div>
 
-                {/* Doctors List */}
                 {filteredDoctors.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {filteredDoctors.map((doctor) => (
@@ -313,11 +233,7 @@ export default function DoctorList() {
                     </div>
                 )}
             </main>
-
-            {/* Footer */}
             <Footer />
-
-            {/* Doctor Details Modal */}
             {selectedDoctor && (
                 <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 sm:w-9/12 lg:w-1/3 relative">

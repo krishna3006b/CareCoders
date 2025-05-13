@@ -15,17 +15,14 @@ function App() {
     const { token, user, isAuthenticated } = useSelector((state) => state.user);
     const role = user?.role;
 
-    // Dispatch loadUserFromStorage to load data from localStorage
     useEffect(() => {
         dispatch(loadUserFromStorage());
     }, [dispatch]);
 
-    // If no token (not authenticated), show AuthPage
     if (!isAuthenticated) {
         return <AuthPage />;
     }
 
-    // Render the routes for authenticated users
     return (
         <Routes>
             <Route path='/' element={<Home />} />

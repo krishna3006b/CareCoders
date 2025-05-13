@@ -77,7 +77,6 @@ export default function Home() {
             clinic,
         };
         console.log('Form Submitted:', payload);
-        // dispatch(updateProfile(payload));
     };
 
     useEffect(() => {
@@ -135,9 +134,7 @@ export default function Home() {
                         </div>
 
                         <div className="flex flex-col items-center justify-center mt-6">
-                            {/* Toggle switch */}
                             <div className="relative w-[160px] p-1 border border-gray-400 rounded-md bg-white flex justify-between mb-4">
-                                {/* Sliding highlight */}
                                 <motion.div
                                     layout
                                     initial={false}
@@ -163,7 +160,6 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            {/* Gender Image */}
                             <img src={gender === "Male" ? MaleImg : FemaleImg} alt={gender} className="max-w-[500px] w-full rounded-md object-contain" />
                         </div>
 
@@ -171,14 +167,12 @@ export default function Home() {
                             {people?.map((person) => (
                                 <div key={person.id} className='flex flex-col gap-0.5 text-center items-center'>
 
-                                    {/* Image */}
                                     <img
                                         src={person.image}
                                         alt={person.name}
                                         className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-gray-100 mt-4"
                                     />
 
-                                    {/* Info */}
                                     <h3 className="font-semibold text-gray-800 text-sm text-center">{person.name}{person.age && ', ' + person.age}</h3>
                                     <p className="text-xs text-gray-600 text-center">
                                         {person.group}
@@ -188,7 +182,6 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* Recent Appointments */}
                     <div className="my-4 bg-white rounded-md p-5 text-gray-700">
                         <h2 className="text-xl font-semibold mb-4">Recent Appointments</h2>
                         {loading ? (
@@ -228,7 +221,6 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/*Health Tips*/}
                     <div className="bg-white rounded-md p-5 text-gray-700">
                         <h2 className="text-xl font-semibold mb-4">Health Tips</h2>
 

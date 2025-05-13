@@ -1,4 +1,3 @@
-// models/Patient.js
 const mongoose = require('mongoose');
 
 const familyMemberSchema = new mongoose.Schema({

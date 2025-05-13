@@ -130,10 +130,10 @@ export default function Appointments() {
     };
 
     const currentDate = new Date();
-    const upcomingAppointments = appointments.filter(appointment => 
+    const upcomingAppointments = appointments.filter(appointment =>
         new Date(appointment.appointmentTime) >= currentDate
     );
-    const pastAppointments = appointments.filter(appointment => 
+    const pastAppointments = appointments.filter(appointment =>
         new Date(appointment.appointmentTime) < currentDate
     );
 
@@ -185,10 +185,10 @@ export default function Appointments() {
                                     <div key={appointment._id} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
                                         <div className="w-full flex flex-row flex-wrap justify-between">
                                             <div className="flex flex-wrap gap-4 items-start sm:items-center">
-                                                <img 
-                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`} 
-                                                    alt={appointment.doctorId.name} 
-                                                    className="w-12 h-12 rounded-full object-cover" 
+                                                <img
+                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`}
+                                                    alt={appointment.doctorId.name}
+                                                    className="w-12 h-12 rounded-full object-cover"
                                                 />
                                                 <div className="flex flex-col">
                                                     <h3 className="text-sm font-semibold text-gray-800">{appointment.doctorId.name}</h3>
@@ -236,10 +236,10 @@ export default function Appointments() {
                                     <div key={appointment._id} className="bg-white border border-gray-200 rounded-md p-4 flex flex-col gap-4">
                                         <div className="w-full flex flex-row flex-wrap justify-between">
                                             <div className="flex flex-wrap gap-4 items-start sm:items-center">
-                                                <img 
-                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`} 
-                                                    alt={appointment.doctorId.name} 
-                                                    className="w-12 h-12 rounded-full object-cover" 
+                                                <img
+                                                    src={appointment.doctorId.image || `https://api.dicebear.com/8.x/initials/svg?seed=${appointment.doctorId.name}`}
+                                                    alt={appointment.doctorId.name}
+                                                    className="w-12 h-12 rounded-full object-cover"
                                                 />
                                                 <div className="flex flex-col">
                                                     <h3 className="text-sm font-semibold text-gray-800">{appointment.doctorId.name}</h3>
@@ -277,7 +277,6 @@ export default function Appointments() {
                 )}
             </main>
 
-            {/* Modal for Details */}
             {selectedAppointment && (
                 <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">

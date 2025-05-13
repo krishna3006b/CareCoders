@@ -1,7 +1,6 @@
 const Doctor = require('../models/Doctor');
 const User = require('../models/User');
 
-// GET Today's Appointments for a Doctor
 exports.getTodayAppointments = async (req, res) => {
     try {
         const doctorId = req.params.doctorId;
@@ -64,7 +63,6 @@ exports.getAllDoctors = async (req, res) => {
     }
 }
 
-// Get Doctor Profile
 exports.getDoctorProfile = async (req, res) => {
     try {
         console.log("djkghduig");
@@ -108,7 +106,6 @@ exports.getDoctorProfile = async (req, res) => {
     }
 };
 
-// Update Doctor Profile
 exports.updateDoctorProfile = async (req, res) => {
     try {
         const { name, email, phone, ...doctorData } = req.body;

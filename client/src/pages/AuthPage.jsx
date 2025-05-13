@@ -10,7 +10,6 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../slices/userSlice";
 import { setProfileData } from "../slices/profileSlice";
 
-// Signup Schema
 const signupSchema = z.object({
     name: z.string()
         .min(4, "Name must be at least 4 characters")
@@ -24,7 +23,6 @@ const signupSchema = z.object({
         .regex(/[0-9]/, "Password must contain at least one number"),
 });
 
-// Signin Schema
 const signinSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string()
@@ -40,7 +38,6 @@ export default function AuthPage() {
     const [redirect, setRedirect] = useState(false);
     const dispatch = useDispatch();
 
-    // Signup Form
     const {
         register: signupRegister,
         handleSubmit: handleSignupSubmit,
@@ -50,7 +47,6 @@ export default function AuthPage() {
         mode: "onChange",
     });
 
-    // Signin Form
     const {
         register: signinRegister,
         handleSubmit: handleSigninSubmit,
@@ -92,11 +88,9 @@ export default function AuthPage() {
             if (response.data.success) {
                 const { user, token, profile } = response.data;
 
-                // Store in Redux
                 dispatch(loginSuccess({ user, token }));
                 dispatch(setProfileData(profile));
 
-                // Store in localStorage
                 localStorage.setItem("auth", JSON.stringify({ user, token }));
 
                 toast.success("Login successful!");
@@ -115,7 +109,6 @@ export default function AuthPage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-            {/* Logo */}
             <div className="flex flex-col items-center mb-6">
                 <span className="p-1 rounded-full bg-gray-100 inline-block">
                     <img src={Logo} alt="Logo" className="w-9 h-9 object-cover rounded-full" />
@@ -124,7 +117,6 @@ export default function AuthPage() {
                 <p className="text-gray-500 mt-1">Your health companion</p>
             </div>
 
-            {/* Tabs */}
             <div className="flex space-x-6 mb-4">
                 <button
                     onClick={() => setMode("signin")}
@@ -140,13 +132,11 @@ export default function AuthPage() {
                 </button>
             </div>
 
-            {/* Form Card */}
             <div className="bg-white rounded-xl shadow-md px-8 py-8 w-full max-w-md">
                 {mode === "signup" ? (
                     <form onSubmit={handleSignupSubmit(handleSignup)}>
                         <h2 className="text-xl font-semibold mb-6 text-gray-900">Create Account</h2>
 
-                        {/* Full Name */}
                         <label className="block text-gray-700 mb-1">Full Name</label>
                         <input
                             type="text"
@@ -157,7 +147,6 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signupErrors.name.message}</p>
                         )}
 
-                        {/* Role */}
                         <label className="block text-gray-700 mb-1">Role</label>
                         <select
                             className="w-full border rounded px-3 py-2 mb-4 focus:outline-none"
@@ -167,7 +156,6 @@ export default function AuthPage() {
                             <option value="doctor">Doctor</option>
                         </select>
 
-                        {/* Email Address */}
                         <label className="block text-gray-700 mb-1">Email Address</label>
                         <input
                             type="email"
@@ -178,7 +166,6 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signupErrors.email.message}</p>
                         )}
 
-                        {/* Password */}
                         <label className="block text-gray-700 mb-1">Password</label>
                         <div className="relative">
                             <input
@@ -212,7 +199,6 @@ export default function AuthPage() {
                 ) : (
                     <form onSubmit={handleSigninSubmit(handleSignin)}>
                         <h2 className="text-xl font-semibold mb-6 text-gray-900">Sign in with email</h2>
-                        {/* Email Address */}
                         <label className="block text-gray-700 mb-1">Email Address</label>
                         <input
                             type="email"
@@ -223,7 +209,6 @@ export default function AuthPage() {
                             <p className="text-red-500 text-sm mb-2">{signinErrors.email.message}</p>
                         )}
 
-                        {/* Password */}
                         <label className="block text-gray-700 mb-1">Password</label>
                         <div className="relative">
                             <input
@@ -257,7 +242,6 @@ export default function AuthPage() {
                 )}
             </div>
 
-            {/* Terms of Service */}
             <p className="text-xs text-gray-400 mt-6 text-center max-w-sm">
                 By continuing, you agree to our{" "}
                 <a href="#" className="text-blue-600 underline">

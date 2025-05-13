@@ -17,7 +17,6 @@ export default function Header() {
             </div>
 
             <div className="relative flex items-center gap-4">
-                {/* Optional: add links like Home, Profile, etc. */}
                 <span
                     className='cursor-pointer p-2 bg-gray-200 rounded-md'
                     onClick={() => setShowDropDown((prev) => !prev)}

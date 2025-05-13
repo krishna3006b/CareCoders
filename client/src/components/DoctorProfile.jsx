@@ -15,16 +15,13 @@ const getMinutes = (timeStr) => {
 };
 
 const timeOverlap = (slot1, slot2) => {
-    // Convert date and time strings to Date objects for comparison
     const date1 = new Date(slot1.date);
     const date2 = new Date(slot2.date);
 
-    // If dates are different, no overlap
     if (date1.getTime() !== date2.getTime()) {
         return false;
     }
 
-    // Convert time strings to minutes for easier comparison
     const getMinutes = (timeStr) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
         return hours * 60 + minutes;
@@ -35,12 +32,10 @@ const timeOverlap = (slot1, slot2) => {
     const start2 = getMinutes(slot2.start);
     const end2 = getMinutes(slot2.end);
 
-    // Check if end time is after start time for each slot
     if (end1 <= start1 || end2 <= start2) {
-        return true; // Invalid time range
+        return true;
     }
 
-    // Check for overlap
     return (start1 < end2 && end1 > start2);
 };
 
@@ -80,7 +75,6 @@ export default function DoctorProfile() {
                 end: z.string().min(1, "End time is required")
             })
         ).refine((slots) => {
-            // Sort slots by date and start time
             const sortedSlots = [...slots].sort((a, b) => {
                 const dateCompare = new Date(a.date) - new Date(b.date);
                 if (dateCompare === 0) {
@@ -89,21 +83,17 @@ export default function DoctorProfile() {
                 return dateCompare;
             });
 
-            // Check each slot against subsequent slots
             for (let i = 0; i < sortedSlots.length; i++) {
-                // Validate individual slot time range
                 const currentSlot = sortedSlots[i];
                 const [startHour, startMinute] = currentSlot.start.split(':').map(Number);
                 const [endHour, endMinute] = currentSlot.end.split(':').map(Number);
                 const startMinutes = startHour * 60 + startMinute;
                 const endMinutes = endHour * 60 + endMinute;
 
-                // Check if end time is after start time
                 if (endMinutes <= startMinutes) {
                     return false;
                 }
 
-                // Check for overlap with other slots
                 for (let j = i + 1; j < sortedSlots.length; j++) {
                     if (timeOverlap(sortedSlots[i], sortedSlots[j])) {
                         return false;

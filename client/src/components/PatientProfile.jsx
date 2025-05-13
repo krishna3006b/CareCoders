@@ -9,7 +9,6 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-// Schema definition
 const patientSchema = z.object({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email"),
@@ -26,7 +25,6 @@ const patientSchema = z.object({
     ).optional()
 });
 
-// Date formatting utilities
 const formatDate = date => date ? new Date(date).toISOString().split('T')[0] : '';
 const formatDisplayDate = date => date ? new Date(date).toLocaleDateString() : '';
 
@@ -57,7 +55,6 @@ export default function PatientProfile() {
 
     const backendUrl = import.meta.env.VITE_API_URL;
 
-    // Fetch profile data
     const fetchProfile = async () => {
         try {
             if (!user?.id) {
@@ -93,7 +90,6 @@ export default function PatientProfile() {
         }
     };
 
-    // Update handleSave function
     const handleSave = async (data) => {
         dispatch(setLoading(true));
         try {
@@ -160,7 +156,6 @@ export default function PatientProfile() {
         }
     }, [user, token, profile, dispatch, reset]);
 
-    // Format dates when profile is loaded/updated
     useEffect(() => {
         if (!profile) return;
         const formattedProfile = {
@@ -225,7 +220,6 @@ export default function PatientProfile() {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit(handleSave)} className="space-y-6">
-                            {/* Basic Information */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -298,7 +292,6 @@ export default function PatientProfile() {
                                 </div>
                             </div>
 
-                            {/* Family Members */}
                             <div className="space-y-4">
                                 <label className="block text-sm font-medium text-gray-700">
                                     Family Members

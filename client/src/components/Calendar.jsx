@@ -75,7 +75,6 @@ export default function Calendar() {
                 const isSelected = isSameDay(currentDay, selectedDate);
                 const hasAppointment = appointments.some(appt => appt.date === formattedDate);
 
-                // Check if the current day is in the same month as the selected month
                 const isInCurrentMonth = isSameMonth(currentDay, currentDate);
 
                 let baseClass = "relative flex items-center justify-center h-14 cursor-pointer";
@@ -87,9 +86,8 @@ export default function Calendar() {
                     circleClass += " bg-blue-100 text-black rounded-full";
                 }
 
-                // Apply a faded style if the day is not part of the current month
                 if (!isInCurrentMonth) {
-                    circleClass += " text-gray-300"; // You can change the text color or opacity to make it faded
+                    circleClass += " text-gray-300";
                 }
 
                 week.push(

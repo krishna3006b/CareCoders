@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
 require('dotenv').config();
 
 const dbConnect = require('./config/dbConnect');
@@ -14,6 +15,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const app = express();
 
 // Middleware
+app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
